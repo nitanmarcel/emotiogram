@@ -7,6 +7,8 @@ OPENAI_TOKEN = ''
 API_ID = 0
 API_HASH = ''
 
+# after how many messages the bot will try to detect the emotion.
+MESSAGES_COUNT = 1
 
 # dict of known emotions and specific telegram animated emoji document id
 emotions = {'anger': 5237765359670404869,

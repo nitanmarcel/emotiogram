@@ -6,7 +6,7 @@ import asyncio
 import re
 import logging
 
-from config import API_HASH, API_ID, OPENAI_TOKEN, emotions, default_emotion
+from config import API_HASH, API_ID, OPENAI_TOKEN, emotions, default_emotion, MESSAGES_COUNT
 
 logging.basicConfig(level=logging.INFO)
 
@@ -38,7 +38,8 @@ async def openai_emotion(text):
                 return re.sub(r'[^a-zA-Z]+|\n', '', text).lower()
 
 last_emotion_id = 0
-
+messages_counter = 1
+messages = ''
 
 async def main():
     client = telethon.TelegramClient(
@@ -46,9 +47,13 @@ async def main():
     async with client:
         @client.on(telethon.events.NewMessage(outgoing=True, incoming=False))
         async def emotiogram(event):
-            global last_emotion_id
+            global last_emotion_id, messages_counter, messages
             if event.text and not event.text.startswith('.howami'):
-                emotion = await openai_emotion(event.text)
+                if messages_counter < MESSAGES_COUNT:
+                    messages += '\n%s' + event.text
+                    messages_counter += 1
+                    return
+                emotion = await openai_emotion(messages or event.text)
                 logging.info('Text: %s' % event.text)
                 logging.info('Emotion: %s' % emotion)
                 if emotion in emotions.keys():
@@ -61,6 +66,8 @@ async def main():
                             document_id=emotion_emoji_id)
                     ))
                     last_emotion_id = emotion_emoji_id
+                    messages_counter = 0
+                    messages = ''
 
         @client.on(telethon.events.NewMessage(outgoing=True, incoming=False, pattern=r'^\.howami'))
         async def howami(event):
