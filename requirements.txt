@@ -1,0 +1,3 @@
+telethon
+aiohttp
+git+https://github.com/samwaterbury/rpunct.git
